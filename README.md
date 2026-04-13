@@ -1,59 +1,81 @@
-# Overview
-This repository contains a React frontend, and an Express backend that the frontend connects to.
+# DevOps Code Challenge
 
-# Objective
-Deploy the frontend and backend to somewhere publicly accessible over the internet. The AWS Free Tier should be more than sufficient to run this project, but you may use any platform and tooling you'd like for your solution.
+## Project Overview
+This project deploys a containerized React frontend and Express backend to AWS. The application runs on Amazon ECS Fargate behind an Application Load Balancer. Docker is used for containerization, Amazon ECR stores images, Jenkins automates build and deployment, and Terraform provisions all infrastructure.
 
-Fork this repo as a base. You may change any code in this repository to suit the infrastructure you build in this code challenge.
+---
 
-# Submission
-1. A github repo that has been forked from this repo with all your code.
-2. Modify this README file with instructions for:
-* Any tools needed to deploy your infrastructure
-* All the steps needed to repeat your deployment process
-* URLs to the your deployed frontend.
+## Architecture
+When a user accesses the application, the request first reaches an Application Load Balancer (ALB). The ALB routes frontend traffic to the React service and API requests to the Express backend service.
 
-# Evaluation
-You will be evaluated on the ease to replicate your infrastructure. This is a combination of quality of the instructions, as well as any scripts to automate the overall setup process.
+Both services run as containers on ECS Fargate. Images are stored in Amazon ECR. Jenkins builds and deploys updated images, and Terraform manages all AWS resources including networking, compute, and load balancing.
 
-# Setup your environment
-Install nodejs. Binaries and installers can be found on nodejs.org.
-https://nodejs.org/en/download/
+---
 
-For macOS or Linux, Nodejs can usually be found in your preferred package manager.
-https://nodejs.org/en/download/package-manager/
+## Tech Stack
+- React (Frontend)
+- Node.js / Express (Backend)
+- Docker
+- Amazon ECR
+- Amazon ECS Fargate
+- Application Load Balancer
+- Jenkins
+- Terraform
 
-Depending on the Linux distribution, the Node Package Manager `npm` may need to be installed separately.
+---
 
-# Running the project
-The backend and the frontend will need to run on separate processes. The backend should be started first.
-```
-cd backend
-npm ci
-npm start
-```
-The backend should response to a GET request on `localhost:8080`.
+## CI/CD Pipeline
+Jenkins is used to automate deployments.
 
-With the backend started, the frontend can be started.
-```
-cd frontend
-npm ci
-npm start
-```
-The frontend can be accessed at `localhost:3000`. If the frontend successfully connects to the backend, a message saying "SUCCESS" followed by a guid should be displayed on the screen.  If the connection failed, an error message will be displayed on the screen.
+Pipeline flow:
+1. Pull latest code from GitHub  
+2. Build Docker images (frontend and backend)  
+3. Authenticate to Amazon ECR  
+4. Push images to ECR  
+5. Force new ECS deployment  
 
-# Configuration
-The frontend has a configuration file at `frontend/src/config.js` that defines the URL to call the backend. This URL is used on `frontend/src/App.js#12`, where the front end will make the GET call during the initial load of the page.
+This removes manual deployment steps and ensures consistency.
 
-The backend has a configuration file at `backend/config.js` that defines the host that the frontend will be calling from. This URL is used in the `Access-Control-Allow-Origin` CORS header, read in `backend/index.js#14`
+---
 
-# Optional Extras
-The core requirement for this challenge is to get the provided application up and running for consumption over the public internet. That being said, there are some opportunities in this code challenge to demonstrate your skill sets that are above and beyond the core requirement.
+## Infrastructure (Terraform)
+Terraform provisions:
 
-A few examples of extras for this coding challenge:
-1. Dockerizing the application
-2. Scripts to set up the infrastructure
-3. Providing a pipeline for the application deployment
-4. Running the application in a serverless environment
+- VPC with public and private subnets  
+- Internet Gateway and NAT Gateway  
+- Security Groups  
+- Application Load Balancer  
+- ECS Cluster  
+- ECS Services (frontend and backend)  
+- ECR repositories  
 
-This is not an exhaustive list of extra features that could be added to this code challenge. At the end of the day, this section is for you to demonstrate any skills you want to show that’s not captured in the core requirement.
+This allows the environment to be recreated consistently.
+
+---
+
+## Auto Scaling
+ECS services use target tracking auto scaling based on CPU utilization.
+
+- Minimum tasks: 1  
+- Maximum tasks: 4  
+- Metric: ECSServiceAverageCPUUtilization  
+
+During load testing, the service scaled from 1 task to multiple tasks. New tasks entered the Pending state and then became Running, confirming scaling behavior.
+
+There is a delay between load and scaling due to CloudWatch metric collection and task startup time.
+
+---
+
+## Deployment Verification
+The deployment was verified by:
+
+- Accessing the frontend through the ALB  
+- Calling the backend API and receiving a UUID response  
+- Observing successful Jenkins pipeline runs  
+- Confirming ECS tasks are running  
+- Observing scaling activity under load  
+
+Test command:
+
+```bash
+curl http://devops-challenge-alb-542438279.us-east-2.elb.amazonaws.com/api/
