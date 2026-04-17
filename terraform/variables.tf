@@ -91,5 +91,5 @@ variable "max_tasks" {
 variable "cpu_threshold" {
   description = "CPU utilization threshold for auto scaling"
   type        = number
-  default     = 50
+  default     = 1
 }
