@@ -79,3 +79,33 @@ Test command:
 
 ```bash
 curl http://devops-challenge-alb-542438279.us-east-2.elb.amazonaws.com/api/
+```
+---
+
+
+## GitOps Bonus Implementation
+
+A GitOps-based CI/CD pipeline was implemented using GitHub Actions on a dedicated `gitops` branch.
+
+### Key Features
+- OIDC authentication between GitHub and AWS (no static credentials)
+- Automated Docker image builds for frontend and backend
+- Image push to Amazon ECR
+- Automated ECS service deployments via AWS CLI
+
+### Workflow
+1. Code is pushed to the `gitops` branch
+2. GitHub Actions workflow triggers
+3. AWS credentials are assumed via OIDC
+4. Docker images are built and pushed to ECR
+5. ECS services are updated with new deployments
+
+### Architecture
+- AWS ECS (Fargate) for container orchestration
+- Application Load Balancer (ALB) for routing
+- Amazon ECR for container registry
+- Terraform for infrastructure provisioning
+
+### Branch Strategy
+- `main` branch: Jenkins-based CI/CD implementation
+- `gitops` branch: GitHub Actions GitOps implementation
