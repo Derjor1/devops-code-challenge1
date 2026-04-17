@@ -37,7 +37,7 @@ variable "backend_port" {
 variable "frontend_image" {
   description = "ECR image URI for frontend"
   type        = string
-  default     = "883627150323.dkr.ecr.us-east-2.amazonaws.com/devops-challenge-frontend:v2"
+  default     = "883627150323.dkr.ecr.us-east-2.amazonaws.com/devops-challenge-frontend:latest"
 }
 
 variable "backend_image" {
